@@ -1,21 +1,21 @@
-export const salvarPushToken = async (req, res) => {
+// utils/src/notifications.js
+
+import axios from 'axios';
+
+export const enviarNotificacao = async (tokenDoCelular, titulo, mensagem) => {
+    // Se o usuário não tiver um celular cadastrado (token nulo), ignora
+    if (!tokenDoCelular) return;
+
     try {
-        const id_user = req.user.id; // Pega o ID do usuário logado através do token JWT
-        const { push_token } = req.body; // Pega o token do celular enviado pelo Front
-
-        if (!push_token) {
-            return res.status(400).json({ message: 'Push token não fornecido.' });
-        }
-
-        // Salva o token do celular diretamente na linha do usuário dono dele
-        await db.query(
-            'UPDATE usuario SET push_token = ? WHERE id_user = ?',
-            [push_token, id_user]
-        );
-
-        res.json({ message: 'Token de notificação salvo com sucesso!' });
-    } catch (err) {
-        console.error("Erro ao salvar push token:", err);
-        res.status(500).json({ message: 'Erro interno ao salvar token.' });
+        // Faz uma requisição POST direta para os servidores da Expo
+        await axios.post('https://exp.host/--/api/v2/push/send', {
+            to: tokenDoCelular,
+            sound: 'default', // Ativa o som padrão de notificação no celular
+            title: titulo,
+            body: mensagem
+        });
+        console.log("Notificação enviada com sucesso!");
+    } catch (error) {
+        console.error("Erro ao mandar a ordem para a Expo:", error.message);
     }
 };
